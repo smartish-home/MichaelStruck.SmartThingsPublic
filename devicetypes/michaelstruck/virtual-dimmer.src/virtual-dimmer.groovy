@@ -21,9 +21,14 @@
  */
 
 metadata {
-        definition (name: "Virtual Switch", namespace: "pmckinnon", author: "SmartThings") {
+    definition (name: "Virtual Switch", namespace: "pmckinnon", author: "SmartThings") {
         capability "Switch"
         capability "Refresh"
+
+        attribute "enable", "string"
+
+        command "enable"
+        command "disable"
     }
 
     // simulator metadata
@@ -35,32 +40,60 @@ metadata {
         multiAttributeTile(name: "switch", type: "lighting", width: 6, height: 4, canChangeIcon: true, canChangeBackground: true) {
             tileAttribute("device.switch", key: "PRIMARY_CONTROL") {
                 attributeState "off", label: '${name}', action: "switch.on", icon: "st.switches.light.off", backgroundColor: "#ffffff", nextState: "turningOn"
-                  attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.light.on", backgroundColor: "#79b821", nextState: "turningOff"
+                attributeState "on", label: '${name}', action: "switch.off", icon: "st.switches.light.on", backgroundColor: "#79b821", nextState: "turningOff"
                 attributeState "turningOff", label: '${name}', action: "switch.on", icon: "st.switches.light.off", backgroundColor: "#ffffff", nextState: "turningOn"
-                  attributeState "turningOn", label: '${name}', action: "switch.off", icon: "st.switches.light.on", backgroundColor: "#79b821", nextState: "turningOff"
+                attributeState "turningOn", label: '${name}', action: "switch.off", icon: "st.switches.light.on", backgroundColor: "#79b821", nextState: "turningOff"
             }
         }
 
         standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
+        standardTile("enable", "device.enable", width: 2, height: 2, canChangeIcon: false, inactiveLabel: true, canChangeBackground: false) {
+            state "enabled", label: '${name}', action:"disable", backgroundColor: '#B6F7BD', icon:"st.Lighting.light11"
+            state "disabled", label: '${name}', action:"enable", backgroundColor: '#F46F7D', icon:"st.Lighting.light13"
+        }
         main "switch"
-        details(["switch","lValue","refresh"])
+        details(["switch","lValue","refresh","enable"])
 
     }
+}
+
+def installed() {
+    enable();
+}
+
+def updated() {
+    enable();
+}
+
+def enable() {
+  sendEvent(name: 'enable', value: 'enabled')
+}
+
+def disable() {
+  sendEvent(name: 'enable', value: 'disabled')
 }
 
 def parse(String description) {
 }
 
+def isEnabled() {
+  device.currentValue('enable') == 'enabled'
+}
+
 def on() {
-    sendEvent(name: "switch", value: "on")
-    log.info "Virtual Switch On"
+    if(isEnabled()) {
+      sendEvent(name: "switch", value: "on")
+      log.info "Virtual Switch On"
+    }
 }
 
 def off() {
-    sendEvent(name: "switch", value: "off")
-    log.info "Virtual Switch Off"
+    if(isEnabled()) {
+      sendEvent(name: "switch", value: "off")
+      log.info "Virtual Switch Off"
+    }
 }
 
 def refresh() {
